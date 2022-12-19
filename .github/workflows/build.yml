@@ -52,13 +52,13 @@ jobs:
       - name: Update feeds
         run: |
           git clone https://github.com/coolsnowwolf/lede
-          cd lede
+          mv ./* ../
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Generate configuration file
-        run: cp ../lede.config ./.config
+        run: cp ./lede.config ./.config
 
       - name: Make download
         run: |
