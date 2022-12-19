@@ -52,21 +52,23 @@ jobs:
       - name: Update feeds
         run: |
           git clone https://github.com/coolsnowwolf/lede
-          mv ./* ../
+          cd lede
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
       - name: Generate configuration file
-        run: cp ./lede.config ./.config
+        run: cp ./lede.config ./lede/.config
 
       - name: Make download
         run: |
+          cd lede
           make download -j8
           find dl -size -1024c -exec rm -f {} \;
 
       - name: Compile firmware
         run: |
+          cd lede
           make -j$(nproc) || make -j1 V=s
           echo "======================="
           echo "Space usage:"
@@ -79,6 +81,7 @@ jobs:
 
       - name: Prepare artifact
         run: |
+          cd lede
           mkdir -p ./artifact/firmware
           mkdir -p ./artifact/package
           mkdir -p ./artifact/buildinfo
@@ -91,26 +94,26 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: OpenWrt_buildinfo
-          path: ./artifact/buildinfo/
+          path: ./lede/artifact/buildinfo/
 
       - name: Deliver package
         uses: actions/upload-artifact@v2
         with:
           name: OpenWrt_package
-          path: ./artifact/package/
+          path: ./lede/artifact/package/
 
       - name: Deliver firmware
         uses: actions/upload-artifact@v2
         with:
           name: OpenWrt_firmware
-          path: ./bin/targets/
+          path: ./lede/bin/targets/
   
 
       - name: Upload release asset
         if: github.event == 'release'
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.YOURTOKEN }}
-          file: ./artifact/firmware/*
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./lede/artifact/firmware/*
           tag: ${{ github.ref }}
           file_glob: true
